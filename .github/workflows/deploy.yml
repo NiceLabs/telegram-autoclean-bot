@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to Lambda
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+      - run: sudo npm install --global npm@7
+      - run: ./scripts/build.sh
+      - uses: kazimanzurrashid/aws-lambda-update-action@v1
+        with:
+          zip-file: ./bundle.zip
+          lambda-name: telegram-autoclean-bot
+          AWS_REGION: ap-east-1
+          AWS_ACCESS_KEY_ID: AKIA6K5N6JWL7I2ZYCOD
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.LAMBDA_ACCESS_KEY }}

@@ -1,0 +1,27 @@
+{
+  "name": "@nice-labs/autoclean-bot",
+  "private": true,
+  "scripts": {
+    "build": "ncc build src/index.ts"
+  },
+  "dependencies": {
+    "date-fns": "^2.16.1",
+    "entities": "^2.1.0",
+    "lambda-request-handler": "^0.5.1-alpha1",
+    "lodash-es": "^4.17.20",
+    "node-fetch": "^2.6.1",
+    "pangu": "^4.0.7",
+    "telegraf": "^3.38.0",
+    "urlcat": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.70",
+    "@types/lodash": "^4.14.167",
+    "@types/lodash-es": "^4.17.4",
+    "@types/node": "^14.14.20",
+    "@types/node-fetch": "^2.5.7",
+    "@types/pangu": "^3.3.0",
+    "@vercel/ncc": "^0.27.0",
+    "typescript": "^4.1.3"
+  }
+}
