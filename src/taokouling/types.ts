@@ -16,6 +16,8 @@ export interface Parsed {
   url: string;
   title?: string;
   picUrl?: string;
+
+  prices?: string;
 }
 
 export class TaokoulingError extends Error {

@@ -9,11 +9,17 @@ import {
   TaoPassAPIResponse,
 } from './types';
 
-export async function parseMessage(message: string) {
+export async function parseMessage(message: string | undefined) {
+  if (_.isNil(message)) {
+    return;
+  }
+  const timeout = (ms: number) =>
+    new Promise<undefined>((resolve) => setTimeout(resolve, ms));
   // prettier-ignore
   return Promise.race(_.compact([
     getSymbolRegExp().test(message) && queryTaoPass(RegExp.$1),
-    getShortlinkRegExp().test(message) && queryShortlink(RegExp.$1)
+    getShortlinkRegExp().test(message) && queryShortlink(RegExp.$1),
+    timeout(TIMEOUT)
   ]));
 }
 
@@ -39,7 +45,8 @@ async function queryTaoPass(content: string): Promise<Parsed> {
   const url = getProductLink(parsed.url);
   const title = parsed.content;
   const picUrl = parsed.picUrl;
-  return { url, title, picUrl };
+  const prices = await queryProductPrice(url);
+  return { url, title, picUrl, prices };
 }
 
 async function queryShortlink(code: string): Promise<Parsed> {
@@ -61,7 +68,38 @@ async function queryShortlink(code: string): Promise<Parsed> {
     title = data.title;
     picUrl = data.pic;
   }
-  return { url, title, picUrl };
+  const prices = await queryProductPrice(url);
+  return { url, title, picUrl, prices };
+}
+
+async function queryProductPrice(link: string) {
+  const response = await fetch('https://' + link);
+  const html = await response.text();
+  let values: number[];
+  if (/skuMap\s*:\s*(\{.+\})\s*,/.test(html)) {
+    // from: item.taobao.com
+    const skuMap = JSON.parse(RegExp.$1);
+    values = _.map(skuMap, ({ price }) => Number.parseFloat(price));
+  } else if (/name="current_price"\s*value\s*=\s*"(\d+(?:\.\d+))"/.test(html)) {
+    // from: item.taobao.com
+    values = [Number.parseFloat(RegExp.$1)];
+  } else if (/TShop\.Setup\(\s*(\{.+\})\s*\);/.test(html)) {
+    // from: detail.tmall.com
+    const skuMap = JSON.parse(RegExp.$1)?.valItemInfo?.skuMap;
+    values = _.map(skuMap, ({ price }) => Number.parseFloat(price));
+  } else {
+    return;
+  }
+  values = _.uniq(values);
+  const minPrice = _.min(values)!.toFixed(2);
+  const maxPrice = _.max(values)!.toFixed(2);
+  if (values.length === 1) {
+    return `${values[0].toFixed(2)} CNY`;
+  } else if (values.length === 2) {
+    return `${minPrice} CNY - ${maxPrice} CNY`;
+  } else {
+    return `${values[0].toFixed(2)} CNY (${minPrice} CNY - ${maxPrice} CNY)`;
+  }
 }
 
 function getProductLink(link: string) {
