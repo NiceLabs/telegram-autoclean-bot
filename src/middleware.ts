@@ -13,6 +13,7 @@ export const autoReply: Middleware<Context> = async (ctx, next) => {
   if (chat.description) {
     await ctx.reply(chat.description, {
       reply_to_message_id: ctx.message!.message_id,
+      disable_web_page_preview: true,
     });
   }
   return next();
