@@ -30,7 +30,7 @@ bot.hears(keywords, autoReply);
 
 bot.on('new_chat_members', autoReply, async (ctx) => {
   for (const { id } of ctx.message!.new_chat_members!) {
-    await ctx.kickChatMember(id);
+    await ctx.kickChatMember(id, Date.now() / 1000 + 300);
     await ctx.unbanChatMember(id);
   }
 });
