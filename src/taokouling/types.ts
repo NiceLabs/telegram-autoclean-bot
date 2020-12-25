@@ -4,6 +4,7 @@ export interface TaoPassAPIResponse {
     url: string;
     content: string;
     picUrl: string;
+    expire: string;
   };
 }
 
@@ -16,8 +17,7 @@ export interface Parsed {
   url: string;
   title?: string;
   picUrl?: string;
-
-  prices?: string;
+  expired?: Date;
 }
 
 export class TaokoulingError extends Error {
