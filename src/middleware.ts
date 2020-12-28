@@ -9,14 +9,24 @@ export const errorLog: Middleware<Context> = async (ctx, next) => {
 };
 
 export const autoReply: Middleware<Context> = async (ctx, next) => {
-  const chat = await ctx.getChat();
-  if (chat.description) {
-    await ctx.reply(chat.description, {
+  const reply = async () => {
+    const message = await ctx.reply('Loading ...', {
       reply_to_message_id: ctx.message!.message_id,
       disable_web_page_preview: true,
     });
-  }
-  return next();
+    const { description } = await ctx.getChat();
+    if (description) {
+      return ctx.telegram.editMessageText(
+        message.chat.id,
+        message.message_id,
+        undefined,
+        description,
+      );
+    } else {
+      return ctx.deleteMessage(message.message_id);
+    }
+  };
+  return Promise.all([reply(), next()]);
 };
 
 export const onlyFromChannel: Middleware<Context> = async (ctx, next) => {
