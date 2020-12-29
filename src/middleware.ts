@@ -10,27 +10,24 @@ export const errorLog: Middleware<Context> = async (ctx, next) => {
 
 export const autoReply: Middleware<Context> = async (ctx, next) => {
   const reply = async () => {
-    const message = await ctx.reply('Loading ...', {
+    const { chat, message_id } = await ctx.reply('Reading', {
       reply_to_message_id: ctx.message!.message_id,
-      disable_web_page_preview: true,
     });
+    const editMessageText = (text: string) =>
+      ctx.telegram.editMessageText(chat.id, message_id, undefined, text, {
+        disable_web_page_preview: true,
+        parse_mode: 'HTML',
+      });
     const { description } = await ctx.getChat();
-    if (description) {
-      return ctx.telegram.editMessageText(
-        message.chat.id,
-        message.message_id,
-        undefined,
-        description,
-      );
-    } else {
-      return ctx.deleteMessage(message.message_id);
+    try {
+      if (description) {
+        await editMessageText(description);
+      } else {
+        await ctx.deleteMessage(message_id);
+      }
+    } catch (error) {
+      await editMessageText(String(error));
     }
   };
   return Promise.all([reply(), next()]);
-};
-
-export const onlyFromChannel: Middleware<Context> = async (ctx, next) => {
-  if (ctx.from?.id === 777000) {
-    return next();
-  }
 };
