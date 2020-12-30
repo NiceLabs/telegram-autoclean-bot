@@ -4,6 +4,7 @@ import makeHandler from 'lambda-request-handler';
 import Telegraf from 'telegraf';
 import { autoReply, errorLog } from './middleware';
 import taokouling from './taokouling';
+import urlcat from 'urlcat';
 
 const bot = new Telegraf(process.env.BOT_TOKEN!, {
   telegram: {
@@ -23,28 +24,33 @@ bot.use(taokouling);
 bot.hears(/(讨论|[加入主])群/, autoReply);
 
 bot.on('message', async (ctx, next) => {
-  const isDeleteMessage = !(
-    ctx.from?.id === 777000 ||
-    ctx.message?.reply_to_message ||
-    ctx.message?.new_chat_members
-  );
-  if (isDeleteMessage) {
-    await ctx.deleteMessage();
-  }
-  return next();
-});
-
-bot.on('message', async (ctx, next) => {
-  if (ctx.from?.id !== 777000) {
-    return next();
-  } else {
-    const title = '看完之后你的评分？';
-    const options = ['5', '4', '3', '2', '1'];
-    return ctx.replyWithPoll(title, options, {
+  const onDelete = async () => {
+    const isDeleteMessage = !(
+      ctx.from?.id === 777000 ||
+      ctx.message?.reply_to_message ||
+      ctx.message?.new_chat_members
+    );
+    if (isDeleteMessage) {
+      try {
+        await ctx.deleteMessage();
+      } catch {
+        // ignore
+      }
+    }
+  };
+  const onPoll = async () => {
+    if (ctx.from?.id !== 777000) {
+      return;
+    }
+    const title = '🗳️';
+    const options = ['👍', '👎', '🎉', '😕', '👀', '💊'];
+    const poll = await ctx.replyWithPoll(title, options, {
       reply_to_message_id: ctx.message!.message_id,
       disable_notification: true,
     });
-  }
+    console.info('Poll ID', poll.poll.id);
+  };
+  return Promise.all([onDelete(), onPoll(), next()]);
 });
 
 bot.on('new_chat_members', autoReply, async (ctx) => {
@@ -52,8 +58,12 @@ bot.on('new_chat_members', autoReply, async (ctx) => {
     if (is_bot) {
       continue;
     }
-    await ctx.kickChatMember(id, Date.now() / 1000 + 300);
-    await ctx.unbanChatMember(id);
+    try {
+      await ctx.kickChatMember(id, Date.now() / 1000 + 300);
+      await ctx.unbanChatMember(id);
+    } catch {
+      // ignore
+    }
   }
 });
 

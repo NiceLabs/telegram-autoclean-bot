@@ -2,14 +2,26 @@ import _ from 'lodash-es';
 import fetch from 'node-fetch';
 import urlcat from 'urlcat';
 import { subHours } from 'date-fns';
-import { RE_SHORTLINK, RE_SYMBOL, TIMEOUT, TRACK_QUERY_NAMES, RE_TRACK_QUERY_PREFIX } from './constants';
-import { Parsed, ShortlinkExtraData, TaokoulingError, TaoPassAPIResponse } from './types';
+import {
+  RE_SHORTLINK,
+  RE_SYMBOL,
+  TIMEOUT,
+  TRACK_QUERY_NAMES,
+  RE_TRACK_QUERY_PREFIX,
+} from './constants';
+import {
+  Parsed,
+  ShortlinkExtraData,
+  TaokoulingError,
+  TaoPassAPIResponse,
+} from './types';
 
 export async function parseMessage(message: string | undefined) {
   if (_.isNil(message)) {
     return;
   }
-  const timeout = (ms: number) => new Promise<undefined>((resolve) => setTimeout(resolve, ms));
+  const timeout = (ms: number) =>
+    new Promise<undefined>((resolve) => setTimeout(resolve, ms));
   // prettier-ignore
   return Promise.race(_.compact([
     RE_SYMBOL.test(message) && queryTaoPass(RegExp.$1),
@@ -32,7 +44,9 @@ async function queryTaoPass(content: string): Promise<Parsed> {
   });
   const payload: TaoPassAPIResponse = await response.json();
   if (payload.code !== 0) {
-    throw new TaokoulingError(`This product has been deleted (from taodaxiang.com)`);
+    throw new TaokoulingError(
+      `This product has been deleted (from taodaxiang.com)`,
+    );
   }
   const parsed = payload.data;
   const url = getProductLink(parsed.url);
@@ -43,13 +57,18 @@ async function queryTaoPass(content: string): Promise<Parsed> {
 }
 
 async function queryShortlink(code: string): Promise<Parsed> {
-  const response = await fetch(urlcat('https://m.tb.cn', code), { method: 'GET', timeout: TIMEOUT });
+  const response = await fetch(urlcat('https://m.tb.cn', code), {
+    method: 'GET',
+    timeout: TIMEOUT,
+  });
   const html = await response.text();
   let url: string, title: string | undefined, picUrl: string | undefined;
   if (/url\s*=\s*'(.+)';/.test(html)) {
     url = getProductLink(RegExp.$1);
   } else {
-    throw new TaokoulingError('This product has been deleted (from shortlink parsing)');
+    throw new TaokoulingError(
+      'This product has been deleted (from shortlink parsing)',
+    );
   }
   if (/extraData\s*=\s*(\{.+\});/.test(html)) {
     const data: ShortlinkExtraData = JSON.parse(RegExp.$1);
@@ -102,17 +121,26 @@ function getProductLink(link: string) {
   if (/^shop(\d+)\.m\.taobao\.com$/.test(url.hostname)) {
     const shopId = RegExp.$1;
     return `shop${shopId}.taobao.com`;
-  } else if (url.hostname === 'uland.taobao.com' && url.pathname === '/coupon/edetail' && url.searchParams.has('e')) {
+  } else if (
+    url.hostname === 'uland.taobao.com' &&
+    url.pathname === '/coupon/edetail' &&
+    url.searchParams.has('e')
+  ) {
     return urlcat(url.hostname, url.pathname, { e: url.searchParams.get('e') });
   } else if (url.hostname === 's.m.taobao.com' && url.searchParams.has('q')) {
     return urlcat('s.taobao.com/search', { q: url.searchParams.get('q') });
-  } else if (url.hostname === 'a.m.taobao.com' && /^\/i(\d+).htm/.test(url.pathname)) {
+  } else if (
+    url.hostname === 'a.m.taobao.com' &&
+    /^\/i(\d+).htm/.test(url.pathname)
+  ) {
     return urlcat('item.taobao.com/item.htm', { id: RegExp.$1 });
   } else if (url.searchParams.has('id')) {
     // from: item.taobao.com/item.htm
     // from: detail.m.taobao.com/item.htm
     // from: market.m.taobao.com/app/idleFish-F2e/widle-taobao-rax/page-detail
-    const platform = url.hostname.includes('tmall') ? 'detail.tmall.com' : 'item.taobao.com';
+    const platform = url.hostname.includes('tmall')
+      ? 'detail.tmall.com'
+      : 'item.taobao.com';
     return urlcat(platform, '/item.htm', { id: url.searchParams.get('id') });
   }
   for (const name of url.searchParams.keys()) {

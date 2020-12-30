@@ -17,7 +17,10 @@ const middleware: Middleware<Context> = async (ctx) => {
     return ctx.reply(parsed.url, { reply_to_message_id });
   } else if (parsed.picUrl) {
     const input = { url: parsed.picUrl, filename: 'unknown.jpg' };
-    await ctx.replyWithPhoto(input, { caption: await makeCaption(parsed), reply_to_message_id });
+    await ctx.replyWithPhoto(input, {
+      caption: await makeCaption(parsed),
+      reply_to_message_id,
+    });
   } else {
     await ctx.reply(await makeCaption(parsed), { reply_to_message_id });
   }
