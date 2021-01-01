@@ -4,7 +4,6 @@ import makeHandler from 'lambda-request-handler';
 import Telegraf from 'telegraf';
 import { autoReply, errorLog } from './middleware';
 import taokouling from './taokouling';
-import urlcat from 'urlcat';
 
 const bot = new Telegraf(process.env.BOT_TOKEN!, {
   telegram: {
@@ -26,20 +25,16 @@ bot.hears(/(讨论|[加入主])群/, autoReply);
 bot.on('message', async (ctx, next) => {
   const onDelete = async () => {
     const isDeleteMessage = !(
-      ctx.from?.id === 777000 ||
+      ctx.message?.from?.id === 777000 ||
       ctx.message?.reply_to_message ||
       ctx.message?.new_chat_members
     );
     if (isDeleteMessage) {
-      try {
-        await ctx.deleteMessage();
-      } catch {
-        // ignore
-      }
+      return ctx.deleteMessage();
     }
   };
   const onPoll = async () => {
-    if (ctx.from?.id !== 777000) {
+    if (ctx.message?.from?.id !== 777000) {
       return;
     }
     const title = '🗳️';
@@ -61,8 +56,9 @@ bot.on('new_chat_members', autoReply, async (ctx) => {
     try {
       await ctx.kickChatMember(id, Date.now() / 1000 + 300);
       await ctx.unbanChatMember(id);
-    } catch {
-      // ignore
+    } catch (err) {
+      // continue on error
+      console.error(err);
     }
   }
 });
