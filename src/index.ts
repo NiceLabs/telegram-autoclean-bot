@@ -8,6 +8,7 @@ import {
   deleteBotCommandMessage,
   deleteMessage,
   errorLog,
+  ignoreNonMessage,
   kickChatMember,
   tap,
   unpinChatMessage,
@@ -25,6 +26,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN!, {
 
 bot.use(Telegraf.log());
 bot.use(errorLog);
+bot.use(ignoreNonMessage);
 bot.use(tap(taokouling));
 bot.use(unpinChatMessage);
 bot.use(deleteBotCommandMessage);

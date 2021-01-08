@@ -10,6 +10,13 @@ export const errorLog: Middleware<Context> = async (ctx, next) => {
   }
 };
 
+export const ignoreNonMessage: Middleware<Context> = async (ctx, next) => {
+  if (ctx.updateType !== 'message') {
+    return;
+  }
+  return next();
+};
+
 export const tap = (middleware: Middleware<Context>): MiddlewareFn<Context> => {
   const fn = Composer.unwrap(middleware);
   return (ctx, next) =>
@@ -42,7 +49,7 @@ export const autoPoll = tap(async (ctx) => {
     return;
   }
   const title = '🗳️';
-  const options = shuffle(['👍', '👎', '🎉', '😕', '👀', '💊']);
+  const options = ['👍 | 🎉', '👎 | 👀 | 😕', ...shuffle(['💊', '🌿'])];
   const poll = await ctx.replyWithPoll(title, options, {
     reply_to_message_id: ctx.message!.message_id,
     disable_notification: true,
