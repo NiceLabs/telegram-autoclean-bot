@@ -7,11 +7,12 @@ import {
   autoReply,
   deleteBotCommandMessage,
   deleteMessage,
+  deleteNonTextMessage,
   errorLog,
   ignoreNonMessage,
   kickChatMember,
   tap,
-  unpinChatMessage,
+  unpinAllChatMessages,
 } from './middleware';
 import taokouling from './taokouling';
 
@@ -28,10 +29,10 @@ bot.use(Telegraf.log());
 bot.use(errorLog);
 bot.use(ignoreNonMessage);
 bot.use(tap(taokouling));
-bot.use(unpinChatMessage);
+bot.use(unpinAllChatMessages);
 bot.use(deleteBotCommandMessage);
 bot.hears(/(讨论|[加入主])群/, autoReply);
-bot.on('message', autoPoll, deleteMessage);
+bot.on('message', autoPoll, deleteMessage, deleteNonTextMessage);
 bot.on('new_chat_members', autoReply, kickChatMember);
 
 export const handler = makeHandler(
