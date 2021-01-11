@@ -101,9 +101,9 @@ export const deleteMessage = tap((ctx) => {
   );
   const isUableMessage = !(
     ctx.message.text ||
+    ctx.message.text?.match(/^\p{Emoji}+$/u) ||
     ctx.message.photo ||
-    ctx.message.video ||
-    ctx.message.text?.match(/^\p{Emoji}+$/u)
+    ctx.message.video
   );
   const isBotCommand =
     ctx.message.entities?.find(({ type }) => type === 'bot_command')?.offset ===
