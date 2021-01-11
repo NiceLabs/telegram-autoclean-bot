@@ -28,21 +28,6 @@ export const tap = (middleware: Middleware<Context>): MiddlewareFn<Context> => {
     Promise.all([fn(ctx, Promise.resolve.bind(Promise)), next()]);
 };
 
-export const sendChatAction = (action: ChatAction): Middleware<Context> => {
-  return async (ctx, next) => {
-    const chatId =
-      ctx.message?.reply_to_message?.forward_from_chat?.id ??
-      ctx.message?.forward_from_chat?.id ??
-      ctx.chat!.id;
-    let immediateId = setImmediate(async function sendAction() {
-      await ctx.telegram.sendChatAction(chatId, action);
-      immediateId = setImmediate(sendAction);
-    });
-    await next();
-    clearImmediate(immediateId);
-  };
-};
-
 export const autoReply = tap(async (ctx) => {
   const { chat, message_id } = await ctx.reply('Reading', {
     reply_to_message_id: ctx.message!.message_id,

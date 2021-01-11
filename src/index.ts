@@ -27,7 +27,6 @@ const bot = new Telegraf(process.env.BOT_TOKEN!, {
 bot.use(Telegraf.log());
 bot.use(errorLog);
 bot.use(ignoreNonMessage);
-bot.use(sendChatAction('typing'));
 bot.use(tap(taokouling));
 bot.use(unpinAllChatMessages);
 bot.hears(/(讨论|[加入主])群/, autoReply);
