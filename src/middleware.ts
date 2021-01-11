@@ -91,10 +91,13 @@ export const deleteMessage = tap((ctx) => {
   );
   // prettier-ignore
   const isBotCommand =
-    ctx.message.entities?.find(({ type }) => type === 'bot_command')
+    ctx.message.entities
+    ?.find(({ type }) => type === 'bot_command')
     ?.offset === 0;
+  // prettier-ignore
   const isEmojiMessage =
-    ctx.message.text && /^\p{Emoji}+$/u.test(ctx.message.text);
+    ctx.message.text &&
+     /^\p{Emoji}+$/u.test(ctx.message.text);
   if (isDeletable || isEmojiMessage || isUableMessage || isBotCommand) {
     return ctx.deleteMessage();
   }
