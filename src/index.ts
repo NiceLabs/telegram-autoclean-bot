@@ -5,12 +5,11 @@ import Telegraf from 'telegraf';
 import {
   autoPoll,
   autoReply,
-  deleteBotCommandMessage,
   deleteMessage,
-  deleteNonTextMessage,
   errorLog,
   ignoreNonMessage,
   kickChatMember,
+  sendChatAction,
   tap,
   unpinAllChatMessages,
 } from './middleware';
@@ -28,11 +27,11 @@ const bot = new Telegraf(process.env.BOT_TOKEN!, {
 bot.use(Telegraf.log());
 bot.use(errorLog);
 bot.use(ignoreNonMessage);
+bot.use(sendChatAction('typing'));
 bot.use(tap(taokouling));
 bot.use(unpinAllChatMessages);
-bot.use(deleteBotCommandMessage);
 bot.hears(/(讨论|[加入主])群/, autoReply);
-bot.on('message', autoPoll, deleteMessage, deleteNonTextMessage);
+bot.on('message', autoPoll, deleteMessage);
 bot.on('new_chat_members', autoReply, kickChatMember);
 
 export const handler = makeHandler(

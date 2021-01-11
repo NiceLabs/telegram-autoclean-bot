@@ -1,6 +1,11 @@
 import { Composer, Context, Middleware } from 'telegraf';
 import { MiddlewareFn } from 'telegraf/typings/composer';
-import { ChatPermissions, User } from 'telegraf/typings/telegram-types';
+import {
+  ChatAction,
+  ChatPermissions,
+  IncomingMessage,
+  User,
+} from 'telegraf/typings/telegram-types';
 import { delay } from './utils';
 
 export const errorLog: Middleware<Context> = async (ctx, next) => {
@@ -24,6 +29,17 @@ export const tap = (middleware: Middleware<Context>): MiddlewareFn<Context> => {
     Promise.all([fn(ctx, Promise.resolve.bind(Promise)), next()]);
 };
 
+export const sendChatAction = (action: ChatAction): Middleware<Context> => {
+  return async (ctx, next) => {
+    let immediateId = setImmediate(async function sendAction() {
+      await ctx.telegram.sendChatAction(ctx.chat!.id, action);
+      immediateId = setImmediate(sendAction);
+    });
+    await next();
+    clearImmediate(immediateId);
+  };
+};
+
 export const autoReply = tap(async (ctx) => {
   const { chat, message_id } = await ctx.reply('Reading', {
     reply_to_message_id: ctx.message!.message_id,
@@ -33,8 +49,8 @@ export const autoReply = tap(async (ctx) => {
       disable_web_page_preview: true,
       parse_mode: 'HTML',
     });
-  const { description } = await ctx.getChat();
   try {
+    const { description } = await ctx.getChat();
     if (description) {
       await editMessageText(description);
     } else {
@@ -76,37 +92,15 @@ export const kickChatMember = tap(async (ctx) => {
 export const deleteMessage = tap((ctx) => {
   if (!ctx.message) {
     return;
+  } else if (ctx.message.new_chat_members) {
+    return;
   }
   const isDeletable = !(
     ctx.message.from?.id === 777000 ||
     ctx.message.reply_to_message ||
     ctx.message.new_chat_members
   );
-  if (isDeletable) {
-    return ctx.deleteMessage();
-  }
-});
-
-export const deleteBotCommandMessage = tap((ctx) => {
-  const entry = ctx.message?.entities?.find(
-    ({ type }) => type === 'bot_command',
-  );
-  if (entry?.offset === 0) {
-    return ctx.deleteMessage();
-  }
-});
-
-export const deleteNonTextMessage = tap((ctx) => {
-  if (!ctx.message) {
-    return;
-  }
-  const isDeletable =
-    ctx.message.dice ||
-    ctx.message.game ||
-    ctx.message.location ||
-    ctx.message.sticker ||
-    ctx.message.venue;
-  if (isDeletable) {
+  if (isDeletable || isUableMessage(ctx.message) || isBotCommand(ctx.message)) {
     return ctx.deleteMessage();
   }
 });
@@ -119,3 +113,9 @@ export const unpinAllChatMessages = tap((ctx) => {
     chat_id: ctx.chat.id,
   });
 });
+
+const isUableMessage = (message: IncomingMessage) =>
+  !(message.text || message.photo || message.video);
+
+const isBotCommand = (message: IncomingMessage) =>
+  message.entities?.find(({ type }) => type === 'bot_command')?.offset === 0;
