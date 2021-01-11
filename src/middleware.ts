@@ -30,8 +30,12 @@ export const tap = (middleware: Middleware<Context>): MiddlewareFn<Context> => {
 
 export const sendChatAction = (action: ChatAction): Middleware<Context> => {
   return async (ctx, next) => {
+    const chatId =
+      ctx.message?.reply_to_message?.forward_from_chat?.id ??
+      ctx.message?.forward_from_chat?.id ??
+      ctx.chat!.id;
     let immediateId = setImmediate(async function sendAction() {
-      await ctx.telegram.sendChatAction(ctx.chat!.id, action);
+      await ctx.telegram.sendChatAction(chatId, action);
       immediateId = setImmediate(sendAction);
     });
     await next();
