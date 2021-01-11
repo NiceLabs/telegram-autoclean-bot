@@ -1,10 +1,6 @@
 import { Composer, Context, Middleware } from 'telegraf';
 import { MiddlewareFn } from 'telegraf/typings/composer';
-import {
-  ChatAction,
-  ChatPermissions,
-  User,
-} from 'telegraf/typings/telegram-types';
+import { ChatPermissions, User } from 'telegraf/typings/telegram-types';
 import { delay } from './utils';
 
 export const errorLog: Middleware<Context> = async (ctx, next) => {
