@@ -101,14 +101,16 @@ export const deleteMessage = tap((ctx) => {
   );
   const isUableMessage = !(
     ctx.message.text ||
-    ctx.message.text?.match(/^\p{Emoji}+$/u) ||
     ctx.message.photo ||
     ctx.message.video
   );
+  // prettier-ignore
   const isBotCommand =
-    ctx.message.entities?.find(({ type }) => type === 'bot_command')?.offset ===
-    0;
-  if (isDeletable || isUableMessage || isBotCommand) {
+    ctx.message.entities?.find(({ type }) => type === 'bot_command')
+    ?.offset === 0;
+  const isEmojiMessage =
+    ctx.message.text && /^\p{Emoji}+$/u.test(ctx.message.text);
+  if (isDeletable || isEmojiMessage || isUableMessage || isBotCommand) {
     return ctx.deleteMessage();
   }
 });
