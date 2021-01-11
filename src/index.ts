@@ -9,7 +9,6 @@ import {
   errorLog,
   ignoreNonMessage,
   kickChatMember,
-  sendChatAction,
   tap,
   unpinAllChatMessages,
 } from './middleware';
