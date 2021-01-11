@@ -3,7 +3,6 @@ import { MiddlewareFn } from 'telegraf/typings/composer';
 import {
   ChatAction,
   ChatPermissions,
-  IncomingMessage,
   User,
 } from 'telegraf/typings/telegram-types';
 import { delay } from './utils';
@@ -100,7 +99,16 @@ export const deleteMessage = tap((ctx) => {
     ctx.message.reply_to_message ||
     ctx.message.new_chat_members
   );
-  if (isDeletable || isUableMessage(ctx.message) || isBotCommand(ctx.message)) {
+  const isUableMessage = !(
+    ctx.message.text ||
+    ctx.message.photo ||
+    ctx.message.video ||
+    ctx.message.text?.match(/^\p{Emoji}+$/u)
+  );
+  const isBotCommand =
+    ctx.message.entities?.find(({ type }) => type === 'bot_command')?.offset ===
+    0;
+  if (isDeletable || isUableMessage || isBotCommand) {
     return ctx.deleteMessage();
   }
 });
@@ -113,9 +121,3 @@ export const unpinAllChatMessages = tap((ctx) => {
     chat_id: ctx.chat.id,
   });
 });
-
-const isUableMessage = (message: IncomingMessage) =>
-  !(message.text || message.photo || message.video);
-
-const isBotCommand = (message: IncomingMessage) =>
-  message.entities?.find(({ type }) => type === 'bot_command')?.offset === 0;
