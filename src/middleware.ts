@@ -84,6 +84,10 @@ export const deleteMessage = tap((ctx) => {
     ctx.message.reply_to_message ||
     ctx.message.new_chat_members
   );
+  // prettier-ignore
+  const isEmojiMessage =
+    ctx.message.text &&
+     /^(\p{Emoji}|\s)+$/u.test(ctx.message.text);
   const isUableMessage = !(
     ctx.message.text ||
     ctx.message.photo ||
@@ -91,13 +95,9 @@ export const deleteMessage = tap((ctx) => {
   );
   // prettier-ignore
   const isBotCommand =
-    ctx.message.entities
-    ?.find(({ type }) => type === 'bot_command')
-    ?.offset === 0;
-  // prettier-ignore
-  const isEmojiMessage =
-    ctx.message.text &&
-     /^(\p{Emoji}|\s)+$/u.test(ctx.message.text);
+       ctx.message.entities
+       ?.find(({ type }) => type === 'bot_command')
+       ?.offset === 0;
   if (isDeletable || isEmojiMessage || isUableMessage || isBotCommand) {
     return ctx.deleteMessage();
   }
