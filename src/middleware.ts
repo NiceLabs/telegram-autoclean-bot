@@ -91,7 +91,8 @@ export const deleteMessage = tap((ctx) => {
   const isUableMessage = !(
     ctx.message.text ||
     ctx.message.photo ||
-    ctx.message.video
+    ctx.message.video ||
+    ctx.message.animation?.mime_type === 'video/mp4'
   );
   // prettier-ignore
   const isBotCommand =
