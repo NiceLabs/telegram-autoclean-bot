@@ -40,8 +40,10 @@ export const autoReply = tap(async (ctx) => {
     } else {
       await ctx.deleteMessage(message_id);
     }
-  } catch (error) {
-    await editMessageText(String(error));
+  } catch (err) {
+    await editMessageText(
+      String(err).replace(process.env.BOT_TOKEN!, '${BOT_TOKEN}'),
+    );
   }
 });
 
