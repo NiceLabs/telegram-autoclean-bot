@@ -78,6 +78,8 @@ export const kickChatMember = tap(async (ctx) => {
 export const deleteMessage = tap((ctx) => {
   if (!ctx.message) {
     return;
+  } else if (ctx.message.from?.id === 777000) {
+    return;
   } else if (ctx.message.new_chat_members) {
     return;
   }
