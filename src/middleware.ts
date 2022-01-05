@@ -19,6 +19,16 @@ export const ignoreNonMessage: Middleware<Context> = async (ctx, next) => {
   return next();
 };
 
+export const onEndOfService =
+  (end: Date): Middleware<Context> =>
+  async (ctx, next) => {
+    if (Date.now() > end.getTime()) {
+      return ctx.leaveChat();
+    } else {
+      return next();
+    }
+  };
+
 export const tap = (middleware: Middleware<Context>): MiddlewareFn<Context> => {
   const fn = Composer.unwrap(middleware);
   return (ctx, next) =>

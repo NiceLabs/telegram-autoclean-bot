@@ -9,6 +9,7 @@ import {
   errorLog,
   ignoreNonMessage,
   kickChatMember,
+  onEndOfService,
   tap,
   unpinAllChatMessages,
 } from './middleware';
@@ -23,6 +24,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN!, {
   },
 });
 
+bot.use(onEndOfService(new Date('2022-07-01T00:00:00+08:00')));
 bot.use(ignoreNonMessage);
 bot.use(Telegraf.log());
 bot.use(errorLog);
